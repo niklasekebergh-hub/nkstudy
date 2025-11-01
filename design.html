@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Markdown renderer -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <!-- Sanitize any HTML produced by Markdown (critical for safety) -->
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
+  <!-- MathJax for LaTeX ($...$, $$...$$) -->
+  <script>
+    window.MathJax = {
+      tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
+      svg: { fontCache: 'global' }
+    };
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
+
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NKSTUDY</title>
+
+  <style>
+    /* Center page content nicely */
+    body {
+      font-family: Arial, sans-serif;
+      background: #f5f5f5;
+      margin: 0;
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: 32px;
+      text-align: center;
+    }
+
+    /* Main app wrapper */
+    #app {
+      width: min(800px, 92vw);
+      transition: opacity .25s ease, filter .25s ease, transform .25s ease;
+    }
+    #app.fade-out {
+      opacity: 0;
+      filter: blur(2px);
+      transform: scale(.98);
+    }
+
+    h2 { color: #555; }
+
+    /* Form layout: stack fields vertically */
+    .form {
+      width: min(700px, 92vw);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      text-align: left;
+      margin-inline: auto;
+    }
+    .field { display: flex; flex-direction: column; }
+    .field label {
+      font-weight: 600;
+      margin-bottom: 6px;
+    }
+    .field input,
+    .field textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      font: inherit;
+      box-sizing: border-box;
+    }
+    #terms {
+      height: 45vh
+    }
+
+
+    /* Buttons */
+    .actions { text-align: center; }
+    button {
+      margin: 10px;
+      padding: 14px 28px;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      color: white;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    #learn { background-color: #4CAF50; }
+    #practice { background-color: #2196F3; }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    button:hover { opacity: 0.9; transition: opacity .15s ease; }
+
+    /* Result box; hidden when empty; fades in */
+    #result {
+      margin: 20px auto 0;
+      max-width: 700px;
+      background: white;
+      padding: 16px 18px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.08);
+      text-align: left;
+      opacity: 0;
+      transition: opacity .25s ease;
+    }
+    #result.show { opacity: 1; }
+    #result:empty { display: none; }
+
+    /* Optional: nicer code blocks and spacing in result */
+    #result pre {
+      padding: 10px;
+      border-radius: 8px;
+      background: #f4f4f5;
+      overflow: auto;
+    }
+    #result p { margin: 0.5em 0; }
+
+    /* Full-screen overlay */
+    #overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,.5);
+      display: grid;
+      place-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s ease;
+    }
+    #overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .overlay-box {
+      background: #111;
+      color: #fff;
+      border-radius: 14px;
+      padding: 28px 32px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      min-width: min(90vw, 420px);
+      text-align: center;
+    }
+    /* Loading text */
+    #loading-text {
+      font-size: 1.1rem;
+      letter-spacing: .2px;
+      margin-bottom: 12px;
+    }
+    /* Three bouncing dots */
+    .dots {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: center;
+      height: 24px;
+    }
+    .dots span {
+      width: 8px;
+      height: 8px;
+      background: #fff;
+      border-radius: 50%;
+      display: inline-block;
+      animation: bounce 1s infinite ease-in-out;
+    }
+    .dots span:nth-child(2) { animation-delay: .15s; }
+    .dots span:nth-child(3) { animation-delay: .30s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); opacity: .7; }
+      40% { transform: translateY(-8px); opacity: 1; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Main app wrapper -->
+  <main id="app" role="main">
+    <h1>NKSTUDY</h1>
+    <h2>AI Study Tool</h2>
+
+    <!-- Stacked form -->
+    <form class="form" onsubmit="return false;">
+      <div class="field">
+        <label for="topic">Topic</label>
+        <input id="topic" placeholder="e.g., Photosynthesis">
+      </div>
+
+      <div class="field">
+        <label for="terms">Terms (comma-separated)</label>
+        <textarea id="terms" rows="4" placeholder="chlorophyll, Calvin cycle, light-dependent reactions"></textarea>
+      </div>
+
+      <div class="actions">
+        <button id="learn" type="button">Study Guide</button>
+        <button id="practice" type="button">Practice Questions</button>
+      </div>
+    </form>
+
+    <div id="result" aria-live="polite"></div>
+  </main>
+
+  <!-- Loading overlay -->
+  <div id="overlay" aria-hidden="true">
+    <div class="overlay-box">
+      <div id="loading-text">Generating…</div>
+      <div class="dots" aria-label="Loading">
+        <span></span><span></span><span></span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const app = document.getElementById('app');
+    const overlay = document.getElementById('overlay');
+    const loadingText = document.getElementById('loading-text');
+    const resultBox = document.getElementById('result');
+    const learnBtn = document.getElementById('learn');
+    const practiceBtn = document.getElementById('practice');
+
+    function showLoading(mode) {
+      loadingText.textContent = mode === 'practice'
+        ? 'Generating Practice Questions'
+        : 'Generating Study Guide';
+
+      app.classList.add('fade-out');
+      resultBox.classList.remove('show'); // hide previous result (fade)
+      overlay.classList.add('show');
+      learnBtn.disabled = true;
+      practiceBtn.disabled = true;
+    }
+
+    function hideLoading() {
+      overlay.classList.remove('show');
+      app.classList.remove('fade-out');
+      learnBtn.disabled = false;
+      practiceBtn.disabled = false;
+    }
+
+    async function sendRequest(mode) {
+      const topic = document.getElementById('topic').value.trim();
+      const terms = document.getElementById('terms').value.trim();
+
+      // Show overlay immediately
+      showLoading(mode);
+
+      try {
+        const res = await fetch('/study', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ topic, terms, mode })
+        });
+
+        const data = await res.json();
+        const raw = data.response || data.error || 'No response received.';
+
+        // 1) Markdown -> HTML
+        const html = marked.parse(raw);
+
+        // 2) Sanitize (allow sub/sup for chemistry/math inline)
+        const clean = DOMPurify.sanitize(html, {
+          ALLOWED_TAGS: [
+            'h1','h2','h3','h4','h5','h6','p','b','strong','i','em','u',
+            'sub','sup','code','pre','blockquote','ul','ol','li','hr','br',
+            'table','thead','tbody','tr','th','td','a','img','span'
+          ],
+          ALLOWED_ATTR: ['href','title','alt','src']
+        });
+
+        // 3) Inject and typeset LaTeX
+        resultBox.innerHTML = clean;
+        if (window.MathJax?.typesetPromise) {
+          await MathJax.typesetPromise([resultBox]);
+        }
+
+        // 4) Fade in
+        resultBox.classList.add('show');
+
+      } catch (err) {
+        resultBox.textContent = 'An error occurred. Please try again.';
+        resultBox.classList.add('show');
+      } finally {
+        // Hide overlay after a small delay so the fade feels smooth
+        setTimeout(hideLoading, 150);
+      }
+    }
+
+    learnBtn.addEventListener('click', () => sendRequest('learn'));
+    practiceBtn.addEventListener('click', () => sendRequest('practice'));
+  </script>
+</body>
+</html>
