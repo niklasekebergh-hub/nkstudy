@@ -8,7 +8,7 @@ app = Flask(__name__, static_url_path='', static_folder='.')
 def home():
     return send_from_directory('.', 'design.html')
 
-client = OpenAI(api_key=os.environ.get("OPEN_AI_KEY"))
+client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 @app.route('/study', methods=['POST'])
 def study():
