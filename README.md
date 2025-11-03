@@ -1,6 +1,37 @@
-# nkstudy
-HTML based web application that turns user input into study guide or practice questions using OPENAI's API. 
+# NKSTUDY — AI Study Tool (Flask + HTML)
 
-Prompt.py (Backend): Uses Flask to send user input from website to OPENAI API, where the gpt4-o-mini model is assigned as a helpful study assistent, and is given the topic and the terms(as a list) from the user input. The API then either generates a study guide or short answer practice questions based on the Flask directions, which is they outputted back onto the page.
+An **AI-powered study assistant** that turns user input into either a **study guide** or **practice questions** using OpenAI’s API and the `gpt-4o-mini` model.
 
-Design.html (Frontend): The input is taken in two text boxes. If both are not used, the code will not run and will direct the user to fill both text boxes. Then when either "Study Guide" or "Practice Questions" buttons are pressed, the objects will fade and a loading screen will appear while the API is generating the output. Once the output has been generated, the loading screen will disappear and the output can be found under the original objects.
+**Created by Niklas Ekebergh.** © 2025 Niklas — Licensed under the [MIT License](./LICENSE).
+
+---
+
+##  Features
+- Two modes:  
+  - **Study Guide** — Generates structured summaries with definitions and examples.  
+  - **Practice Questions** — Creates short-answer questions based on the provided terms.
+- Clean and responsive HTML frontend.
+- Smooth loading animation and transitions.
+- Markdown, LaTeX, and sanitized HTML support in output.
+- Flask backend for OpenAI API communication.
+
+---
+
+##  Tech Stack
+| Layer | Tools |
+| **Frontend** | HTML, CSS, JS (with [Marked.js](https://marked.js.org/), [DOMPurify](https://github.com/cure53/DOMPurify), [MathJax](https://www.mathjax.org/)) |
+| **Backend** | Python, Flask |
+| **AI Model** | OpenAI `gpt-4o-mini` |
+
+---
+
+##  Usage
+**1. Install Dependencies**
+  ```bash
+   pip install flask openai python-dotenv
+```
+
+**2. Create .env file in project root and add:**
+  `OPENAI_API_KEY="your_openai_key_here"`
+
+**3. Run flask app python Prompt.py and open browser at *http://127.0.0.1:(Port)***
