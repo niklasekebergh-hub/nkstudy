@@ -1,6 +1,7 @@
 from openai import OpenAI
 import os
 from flask import Flask, request, jsonify, send_from_directory
+from dotenv import load_dotenv
 
 app = Flask(__name__, static_url_path='', static_folder='.')
 
@@ -38,7 +39,7 @@ def study():
     else:
         user_prompt = "Invalid mode selected."
 
-    # ---- Your fixed try block ----
+   
     try:
         system_msg = (
             "You are a helpful study assistant. "
@@ -63,7 +64,4 @@ def study():
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    # pip install flask openai
-    # export OPENAI_API_KEY=YOUR_KEY
-    # python app.py
     app.run(debug=True)
