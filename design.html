@@ -5,11 +5,13 @@
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
   <!-- Sanitize any HTML produced by Markdown (critical for safety) -->
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.1.7/dist/purify.min.js"></script>
-  <!-- MathJax for LaTeX ($...$, $$...$$) -->
+
+  <!-- MathJax for LaTeX ($...$, $$...$$). We disable auto-typeset and run it manually. -->
   <script>
     window.MathJax = {
       tex: { inlineMath: [['$', '$'], ['\\(', '\\)']] },
-      svg: { fontCache: 'global' }
+      svg: { fontCache: 'global' },
+      startup: { typeset: false } // we'll call MathJax.typesetPromise ourselves
     };
   </script>
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js" async></script>
@@ -67,10 +69,7 @@
       font: inherit;
       box-sizing: border-box;
     }
-    #terms {
-      height: 45vh
-    }
-
+    #terms { height: 45vh; }
 
     /* Buttons */
     .actions { text-align: center; }
@@ -198,7 +197,7 @@
   <!-- Loading overlay -->
   <div id="overlay" aria-hidden="true">
     <div class="overlay-box">
-      <div id="loading-text">Generating…</div>
+      <div id="loading-text">Generating&hellip;</div>
       <div class="dots" aria-label="Loading">
         <span></span><span></span><span></span>
       </div>
@@ -249,8 +248,11 @@
         const data = await res.json();
         const raw = data.response || data.error || 'No response received.';
 
+        // OPTIONAL: normalize \( ... \) â†’ $...$ so MathJax always picks it up
+        const normalized = raw.replace(/\\\(([\s\S]*?)\\\)/g, '$$$1$$');
+
         // 1) Markdown -> HTML
-        const html = marked.parse(raw);
+        const html = marked.parse(normalized);
 
         // 2) Sanitize (allow sub/sup for chemistry/math inline)
         const clean = DOMPurify.sanitize(html, {
@@ -259,16 +261,19 @@
             'sub','sup','code','pre','blockquote','ul','ol','li','hr','br',
             'table','thead','tbody','tr','th','td','a','img','span'
           ],
-          ALLOWED_ATTR: ['href','title','alt','src']
+          ALLOWED_ATTR: ['href','title','alt','src'] // add 'style' if you want colored spans
         });
 
-        // 3) Inject and typeset LaTeX
+        // 3) Inject sanitized HTML
         resultBox.innerHTML = clean;
-        if (window.MathJax?.typesetPromise) {
+
+        // 4) Ensure MathJax is ready, then typeset LaTeX
+        if (window.MathJax?.startup?.promise) {
+          await MathJax.startup.promise;
           await MathJax.typesetPromise([resultBox]);
         }
 
-        // 4) Fade in
+        // 5) Fade in
         resultBox.classList.add('show');
 
       } catch (err) {
