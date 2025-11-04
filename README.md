@@ -20,7 +20,7 @@ An **AI-powered study assistant** that turns user input into either a **study gu
 ##  Tech Stack
 | Layer | Tools |
 | **Frontend** | HTML, CSS, JS (with [Marked.js](https://marked.js.org/), [DOMPurify](https://github.com/cure53/DOMPurify), [MathJax](https://www.mathjax.org/)) |
-| **Backend** | Python, Flask, dotenv, pathlib|
+| **Backend** | Python, Flask, dotenv, pathlib |
 | **AI Model** | OpenAI `gpt-4o-mini` |
 
 ---
