@@ -1,15 +1,26 @@
 from openai import OpenAI
 import os
 from flask import Flask, request, jsonify, send_from_directory
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
+from pathlib import Path
+
+# Find a .env starting from the current working dir
+load_dotenv(find_dotenv(usecwd=True))
+
+API_KEY = os.getenv("OPENAI_API_KEY")
+if not API_KEY:
+    raise RuntimeError(
+                         "OPENAI_API_KEY is not set. Create a .env next to prompt.py with "
+                         "OPENAI_API_KEY=sk-... (no quotes), or set it in your shell."
+                                            )
+
+client = OpenAI()
 
 app = Flask(__name__, static_url_path='', static_folder='.')
 
 @app.route('/')
 def home():
     return send_from_directory('.', 'design.html')
-
-client = OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
 
 @app.route('/study', methods=['POST'])
 def study():
@@ -39,7 +50,7 @@ def study():
     else:
         user_prompt = "Invalid mode selected."
 
-   
+    # ---- Your fixed try block ----
     try:
         system_msg = (
             "You are a helpful study assistant. "
