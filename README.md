@@ -20,7 +20,7 @@ An **AI-powered study assistant** that turns user input into either a **study gu
 ##  Tech Stack
 | Layer | Tools |
 | **Frontend** | HTML, CSS, JS (with [Marked.js](https://marked.js.org/), [DOMPurify](https://github.com/cure53/DOMPurify), [MathJax](https://www.mathjax.org/)) |
-| **Backend** | Python, Flask |
+| **Backend** | Python, Flask, dotenv, pathlib|
 | **AI Model** | OpenAI `gpt-4o-mini` |
 
 ---
@@ -28,7 +28,7 @@ An **AI-powered study assistant** that turns user input into either a **study gu
 ##  Usage
 **1. Install Dependencies**
   ```bash
-   pip install flask openai python-dotenv
+   pip install flask openai python-dotenv pathlib
 ```
 
 **2. Create .env file in project root and add:**
